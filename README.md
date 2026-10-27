@@ -26,6 +26,15 @@ Hinweise:
 - Der Host berechnet Gegner und Wellen. Sein Browser-Tab muss deshalb sichtbar bleiben, sonst pausiert das Spiel für alle.
 - Online lässt sich das Spiel nicht anhalten; **P**/**Options** öffnet nur das Menü.
 
+## Grafik
+
+Im Hauptmenü lässt sich die Grafik umschalten:
+
+- **Hoch:** Leuchteffekte (Bloom), Vignette, Farbabstimmung, volle Auflösung, schwebender Staub.
+- **Schnell:** für schwächere Rechner und Handys, ohne Nachbearbeitung und mit geringerer Auflösung.
+
+Die Wahl wird im Browser gespeichert.
+
 ## Steuerung
 
 | Aktion | PS4-Controller | Tastatur & Maus |
