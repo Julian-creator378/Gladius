@@ -104,6 +104,15 @@ button.alt:hover{border-color:var(--sand);color:var(--sand)}
 .foe{margin:0;font-size:15px;line-height:1.6;color:var(--stone)}
 .foe b{color:var(--sand);font-weight:500}
 #roundTxt{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone-dim);min-height:15px}
+.mode.wide{grid-column:1/-1}
+.plabel{position:absolute;left:0;top:0;display:grid;justify-items:center;gap:3px;font-weight:700;font-size:12px;letter-spacing:.08em;text-shadow:0 1px 3px rgba(0,0,0,.9);white-space:nowrap;will-change:transform}
+.plabel .ebar{position:relative}
+.codein{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.3em;text-transform:uppercase;width:8.5em;max-width:100%;background:rgba(10,6,6,.6);color:var(--sand);border:1px solid rgba(236,224,198,.35);padding:10px 12px}
+.codein:focus{outline:2px solid var(--sand);outline-offset:2px}
+.roomcode{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
+.roomcode b{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,44px);letter-spacing:.24em;color:var(--sand)}
+.plist{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:16px;font-weight:500}
+.plist li::before{content:'';display:inline-block;width:9px;height:9px;margin-right:10px;transform:rotate(45deg);background:currentColor}
 @media (max-width:560px){.modes,.ups{grid-template-columns:1fr}.track{grid-template-columns:1fr 1fr}}
 @media (max-width:520px){.stats{grid-template-columns:1fr 1fr}#boss{width:60vw}}
 @media (prefers-reduced-motion:reduce){#banner{transition:none}button.go{transition:none}}
@@ -121,7 +130,7 @@ button.alt:hover{border-color:var(--sand);color:var(--sand)}
   <span class="label" id="waveLbl">Welle</span>
   <div class="wave" id="waveTxt">I</div>
   <div id="roundTxt"></div>
-  <span class="label" style="margin-top:8px">Ruhm</span>
+  <span class="label" style="margin-top:8px" id="fameLbl">Ruhm</span>
   <div class="fame" id="fameTxt">0</div>
   <div class="combo" id="comboTxt"></div>
 </div>
@@ -137,6 +146,7 @@ button.alt:hover{border-color:var(--sand);color:var(--sand)}
     <div class="modes">
       <button class="mode primary" id="careerBtn"><b>Karriere</b><span id="careerInfo">Vom Neuling zum freien Mann: zwölf Kämpfe, Denare und bessere Ausrüstung.</span></button>
       <button class="mode" id="startBtn"><b>Wellen-Modus</b><span>Endlose Wellen, ein Leben. Wie weit kommst du?</span></button>
+      <button class="mode wide" id="onlineBtn"><b>Online</b><span>Mit Freunden über einen Raum-Code: gemeinsam gegen die Wellen (Koop, bis zu vier) oder gegeneinander im Duell.</span></button>
     </div>
     <span class="pad" id="padTxt"></span>
     <div class="tablewrap">
@@ -160,8 +170,8 @@ button.alt:hover{border-color:var(--sand);color:var(--sand)}
 
 <div class="overlay" id="pauseScreen" hidden>
   <div class="tablet">
-    <div class="eyebrow">Die Menge wartet</div>
-    <h2>Pause</h2>
+    <div class="eyebrow" id="pauseEye">Die Menge wartet</div>
+    <h2 id="pauseTitle">Pause</h2>
     <div class="row"><button class="go" id="resumeBtn">Weiterkämpfen</button><button class="alt" id="quitBtn">Aufgeben</button><span class="pad">Options oder P</span></div>
   </div>
 </div>
@@ -172,8 +182,8 @@ button.alt:hover{border-color:var(--sand);color:var(--sand)}
     <h2 id="overTitle">Gefallen in Welle I</h2>
     <p class="sub" id="overSub">Die Menge senkt den Daumen.</p>
     <div class="stats">
-      <div class="stat"><span class="label">Ruhm</span><b id="sFame">0</b></div>
-      <div class="stat"><span class="label">Besiegt</span><b id="sKills">0</b></div>
+      <div class="stat"><span class="label" id="sFameLbl">Ruhm</span><b id="sFame">0</b></div>
+      <div class="stat"><span class="label" id="sKillsLbl">Besiegt</span><b id="sKills">0</b></div>
       <div class="stat"><span class="label" id="sBestLbl">Rekord</span><b id="sBest">0</b></div>
     </div>
     <div class="row"><button class="go" id="againBtn">Nochmal kämpfen</button><button class="alt" id="ludusBtn" hidden>Zum Ludus</button><button class="alt" id="menuBtn" data-back>Hauptmenü</button></div>
@@ -209,6 +219,27 @@ button.alt:hover{border-color:var(--sand);color:var(--sand)}
   </div>
 </div>
 
+<div class="overlay" id="lobbyScreen" hidden>
+  <div class="tablet">
+    <div class="eyebrow">Online · Peer-to-Peer</div>
+    <h2 id="lbTitle">Mehrspieler</h2>
+    <div id="lbSetup" style="display:grid;gap:16px">
+      <div class="modes">
+        <button class="mode primary" id="hostCoop"><b>Koop-Raum</b><span>Bis zu vier Gladiatoren gemeinsam gegen endlose Wellen.</span></button>
+        <button class="mode" id="hostDuel"><b>Duell-Raum</b><span>Eins gegen eins. Wer zuerst zwei Runden gewinnt, siegt.</span></button>
+      </div>
+      <div class="row"><input class="codein" id="lbCode" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Raum-Code"><button class="go" id="joinBtn">Beitreten</button></div>
+    </div>
+    <div id="lbRoom" hidden style="display:grid;gap:14px">
+      <div class="roomcode"><span class="label">Raum-Code</span><b id="lbCodeShow"></b><button class="alt" id="lbCopy">Link kopieren</button></div>
+      <ul class="plist" id="lbPlayers"></ul>
+    </div>
+    <p class="foot" id="lbStatus"></p>
+    <div class="row"><button class="go" id="lbStart" hidden>Kampf starten</button><button class="alt" id="lbLeave" data-back>Zurück</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -572,6 +603,10 @@ function readInput(){
 // ---------- game state ----------
 const game={state:'title',mode:'waves',level:1,bossName:'',fight:null,wave:0,fame:0,kills:0,queue:[],spawnT:0,interT:0,overT:0,hadLock:false,best:parseInt(store('gladius-best')||'0',10)||0};
 let combo=0, comboT=0, hitStop=0, shake=0, hurtFx=0, menuLock=0;
+// Online: Host simuliert Gegner und Wellen, jeder Spieler steuert seinen eigenen Gladiator
+const net={active:false,joined:false,role:null,mode:null,peer:null,conn:null,conns:new Map(),id:0,code:'',players:[0],remotes:new Map(),
+  menu:false,sendT:0,snapT:0,score:{},round:0,reported:false,nextT:0,joinTimer:0};
+let netSeq=0, TG=[];
 const RANKS=[{n:'Tiro',d:'Neuling'},{n:'Veteranus',d:'erfahrener Kämpfer'},{n:'Secundus Palus',d:'Zweiter der Schule'},{n:'Primus Palus',d:'Bester der Schule'}];
 const FIGHTS=[
   {rank:0,name:'Die erste Blutprobe',lvl:1,rounds:[['murmillo']],reward:60},
@@ -638,12 +673,18 @@ function bossName(n){return BOSSNAMES[(Math.floor(n/5)-1)%BOSSNAMES.length];}
 function spawnEnemy(key){
   const T=TYPES[key], refs=T.build(); refs.root.scale.setScalar(T.scale);
   const a=pick(SPAWN_GATES);
-  const e={key,T,refs,pos:new V3(Math.sin(a)*(R-.6)+rand(-1,1),0,Math.cos(a)*(R-.6)+rand(-1,1)),facing:a+PI,hp:T.hp(game.level),dmg:T.dmg(game.level),
+  const hpMul=game.mode==='coop'?1+.4*(net.players.length-1):1;
+  const e={key,T,refs,netId:++netSeq,pos:new V3(Math.sin(a)*(R-.6)+rand(-1,1),0,Math.cos(a)*(R-.6)+rand(-1,1)),facing:a+PI,hp:T.hp(game.level)*hpMul,dmg:T.dmg(game.level),
     state:'chase',t:0,cdT:1+Math.random(),knock:new V3(),vel:new V3(),phase:rand(0,TAU),strafe:Math.random()<.5?-1:1,attacks:0,combo:0,
     radius:T.radius,spawnT:1,flash:0,blockT:0,dead:false,anim:{},bar:null,ring:null};
   e.maxHp=e.hp;
   scene.add(refs.root);
-  if(T.boss){
+  enemyUi(e);
+  if(T.kind==='cat') sfx.roar();
+  enemies.push(e);
+}
+function enemyUi(e){
+  if(e.T.boss){
     e.name=game.bossName||bossName(game.wave);
     e.ring=new THREE.Mesh(new THREE.RingGeometry(.92,1,56),new THREE.MeshBasicMaterial({color:0xd03a2c,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide}));
     e.ring.rotation.x=-PI/2; e.ring.visible=false; scene.add(e.ring);
@@ -651,15 +692,13 @@ function spawnEnemy(key){
   } else {
     const b=document.createElement('div'); b.className='ebar'; b.innerHTML='<i></i>'; floatsEl.appendChild(b); e.bar=b;
   }
-  if(T.kind==='cat') sfx.roar();
-  enemies.push(e);
 }
 function removeEnemy(e){scene.remove(e.refs.root);if(e.ring)scene.remove(e.ring);if(e.bar)e.bar.remove();}
 
 function banner(t,sub,d){$('bTitle').textContent=t;$('bSub').textContent=sub||'';$('banner').classList.add('show');bannerT=d||2.2;}
 let bannerT=0;
 
-const OVERLAYS=['titleScreen','overScreen','pauseScreen','resultScreen','ludusScreen'];
+const OVERLAYS=['titleScreen','overScreen','pauseScreen','resultScreen','ludusScreen','lobbyScreen'];
 function showOverlay(id,lock){
   OVERLAYS.forEach(o=>$(o).hidden=o!==id);
   if(id){ menuLock=lock||0; const b=overlayButtons()[0]; if(b) try{b.focus({preventScroll:true});}catch(e){} }
@@ -680,7 +719,7 @@ function resetArena(){
   Object.assign(game,{wave:0,fame:0,kills:0,queue:[],overT:0});
   combo=0; hype=.25; cam.yaw=0;
   showOverlay(null); setHud(true);
-  $('waveLbl').textContent=game.mode==='career'?'Kampf':'Welle';
+  $('waveLbl').textContent=game.mode==='career'?'Kampf':(game.mode==='duel'?'Runde':'Welle');
 }
 function startGame(){ game.mode='waves'; resetArena(); nextWave(); }
 function startCareerFight(){
@@ -697,15 +736,24 @@ function nextWave(){
   } else {
     game.level=game.wave; game.bossName=bossName(game.wave); game.queue=composeWave(game.wave);
     const boss=game.wave%5===0;
-    banner('Welle '+roman(game.wave),boss?'Champion: '+bossName(game.wave):(game.wave===1?'Die Menge erwartet dich':''),2.6);
+    say('Welle '+roman(game.wave),boss?'Champion: '+bossName(game.wave):(game.wave===1?(game.mode==='coop'?'Kämpft Seite an Seite':'Die Menge erwartet dich'):''),2.6,'horn');
+    return;
   }
   sfx.horn();
 }
-function pause(){ if(!['play','inter','won'].includes(game.state))return; game.prev=game.state; game.state='pause'; showOverlay('pauseScreen'); exitLock(); }
-function resume(){ if(game.state!=='pause')return; game.state=game.prev||'play'; showOverlay(null); }
-function quitFight(){ game.state='menu'; clearArena(); setHud(false); if(game.mode==='career') showLudus(); else showTitle(); }
+function pause(){
+  if(!['play','inter','won'].includes(game.state))return;
+  const on=net.active;
+  $('pauseEye').textContent=on?'Online · Der Kampf läuft weiter':'Die Menge wartet'; $('pauseTitle').textContent=on?'Menü':'Pause';
+  $('quitBtn').textContent=on?'Raum verlassen':'Aufgeben';
+  if(on){ net.menu=true; showOverlay('pauseScreen'); exitLock(); return; } // online lässt sich das Spiel nicht anhalten
+  game.prev=game.state; game.state='pause'; showOverlay('pauseScreen'); exitLock();
+}
+function resume(){ if(net.menu){ net.menu=false; showOverlay(null); return; } if(game.state!=='pause')return; game.state=game.prev||'play'; showOverlay(null); }
+function quitFight(){ if(net.active){ showTitle(); return; } game.state='menu'; clearArena(); setHud(false); if(game.mode==='career') showLudus(); else showTitle(); }
+function setOverLabels(a,b,c){ $('sFameLbl').textContent=a; $('sKillsLbl').textContent=b; $('sBestLbl').textContent=c; }
 function gameOver(){
-  game.state='over'; exitLock(); setHud(false);
+  game.state='over'; exitLock(); setHud(false); setOverLabels('Ruhm','Besiegt','Rekord'); $('menuBtn').textContent='Hauptmenü';
   if(game.mode==='career'){
     const cons=Math.round(game.fight.reward*.2); career.denare+=cons; career.fame+=game.fame; saveCareer();
     $('overEyebrow').textContent='Kampf '+roman(career.fight+1)+' · '+game.fight.name;
@@ -765,6 +813,7 @@ function renderLudus(){
 }
 function showLudus(){ game.state='ludus'; clearArena(); setHud(false); renderLudus(); showOverlay('ludusScreen',.3); }
 function showTitle(){
+  if(net.active) leaveRoom();
   game.state='title'; clearArena(); setHud(false); exitLock();
   const done=career.fight>=FIGHTS.length;
   $('careerInfo').textContent=done?'Karriere abgeschlossen. Du bist ein freier Mann.':
@@ -772,12 +821,13 @@ function showTitle(){
   $('bestTxt').textContent=game.best?'Rekord im Wellen-Modus: '+game.best.toLocaleString('de-DE')+' Ruhm':'Tipp: Gegner leuchten auf, kurz bevor sie zuschlagen. Dann blocken oder ausrollen.';
   showOverlay('titleScreen');
 }
-function overlayButtons(){const o=OVERLAYS.map($).find(el=>!el.hidden);return o?[...o.querySelectorAll('button')].filter(b=>!b.disabled&&!b.hidden):[];}
+function overlayButtons(){const o=OVERLAYS.map($).find(el=>!el.hidden);return o?[...o.querySelectorAll('button')].filter(b=>!b.disabled&&b.getClientRects().length>0):[];}
 function menuInput(inp){
   if(menuLock>0) return;
   const bs=overlayButtons(); if(!bs.length) return;
   let i=bs.indexOf(document.activeElement);
   if(inp.nav){ i=i<0?0:(i+inp.nav+bs.length)%bs.length; bs[i].focus({preventScroll:false}); }
+  if(inp.confirm&&document.activeElement&&document.activeElement.tagName==='INPUT') return;
   if(inp.confirm){ (i>=0?bs[i]:bs[0]).click(); return; }
   if(inp.back&&game.state!=='pause'){ const b=bs.find(x=>x.hasAttribute('data-back')); if(b) b.click(); }
 }
@@ -793,7 +843,7 @@ function startAttack(heavy,mx,mz,mag){
   const p=player; p.state='attack'; p.t=0; p.heavy=heavy; p.hitDone=false; p.buffer=null;
   p.stamina=Math.max(0,p.stamina-(heavy?24:12)); p.stDelay=.6;
   const want=mag>.2?Math.atan2(mx,mz):p.facing;
-  const t=nearestEnemy(5,want,1.9); if(t) p.facing=angTo(p.pos,t.pos); else p.facing=want;
+  const t=nearestEnemy(5,want,1.9)||nearestRemote(5,want,1.9); if(t) p.facing=angTo(p.pos,t.pos); else p.facing=want;
   heavy?sfx.heavy():sfx.swing();
 }
 function startDodge(mx,mz,mag){
@@ -806,22 +856,38 @@ function playerStrike(){
   const p=player, range=p.heavy?3.2:2.7, arc=p.heavy?1.4:1.05, dmg=(p.heavy?34:18)*p.dmgMul;
   for(const e of enemies){ if(e.dead)continue; const d=e.pos.distanceTo(p.pos);
     if(d<range+e.radius && Math.abs(angDiff(p.facing,angTo(p.pos,e.pos)))<arc) hitEnemy(e,dmg*rand(.9,1.1),p.heavy); }
-}
-function hitEnemy(e,dmg,heavy){
-  const T=e.T, hitPos=e.pos.clone().setY(1.3*T.scale);
-  if(T.block && !heavy && (e.state==='chase'||e.state==='recover') && Math.abs(angDiff(e.facing,angTo(e.pos,player.pos)))<.9 && Math.random()<T.block){
-    e.blockT=.45; sfx.clang(); burst(hitPos,sparkMat,10,5,3,10,.35); popText(hitPos.clone().setY(2.2),'Geblockt','info');
-    tmpV.subVectors(e.pos,player.pos).setY(0).normalize(); e.knock.addScaledVector(tmpV,2); player.knock.addScaledVector(tmpV,-2.5); rumble(.2,.3,80); return;
+  if(game.mode==='duel'&&game.state==='play'){
+    for(const r of net.remotes.values()){ if(r.dead)continue; const d=r.pos.distanceTo(p.pos);
+      if(d<range+.5 && Math.abs(angDiff(p.facing,angTo(p.pos,r.pos)))<arc) sendTo(r.id,{t:'pvp',d:Math.round(dmg*rand(.9,1.1)),h:p.heavy?1:0,x:r2(p.pos.x),z:r2(p.pos.z)}); }
   }
-  e.hp-=dmg; e.flash=.12; hitStop=heavy?.09:.05; shake=Math.max(shake,heavy?.35:.18); sfx.hit();
-  burst(hitPos,sparkMat,heavy?12:7,5,3,12,.35); burst(e.pos.clone().setY(.1),sandMat,5,3,1.5,8,.5);
-  popText(hitPos.clone().setY(2.1*T.scale),String(Math.round(dmg)),heavy?'big':'');
-  tmpV.subVectors(e.pos,player.pos).setY(0).normalize();
+}
+// by = Spieler-ID des Angreifers, src = seine Position (Standard: lokaler Spieler)
+function hitEnemy(e,dmg,heavy,src,by){
+  if(net.role==='client'){ sendHost({t:'hit',id:e.netId,d:Math.round(dmg),h:heavy?1:0}); return; }
+  src=src||player.pos; if(by===undefined) by=net.id; const mine=by===net.id, T=e.T;
+  if(T.block && !heavy && (e.state==='chase'||e.state==='recover') && Math.abs(angDiff(e.facing,angTo(e.pos,src)))<.9 && Math.random()<T.block){
+    fxBlock(e,mine); tmpV.subVectors(e.pos,src).setY(0).normalize(); e.knock.addScaledVector(tmpV,2);
+    if(net.role==='host') broadcast({t:'fx',id:e.netId,b:1,by}); return;
+  }
+  e.hp-=dmg; fxHit(e,dmg,heavy,mine);
+  tmpV.subVectors(e.pos,src).setY(0).normalize();
   e.knock.addScaledVector(tmpV,T.boss?.8:(heavy?7:3.5));
   if(!T.boss && (heavy||(T.kind==='cat'&&Math.random()<.3))){e.state='stagger';e.t=0;}
-  combo++; comboT=2.5; hype=Math.min(1,hype+.05);
-  rumble(heavy?.5:.25,.3,heavy?120:70);
+  if(mine){combo++; comboT=2.5;} hype=Math.min(1,hype+.05);
+  if(net.role==='host') broadcast({t:'fx',id:e.netId,d:Math.round(dmg),h:heavy?1:0,by});
   if(e.hp<=0) killEnemy(e);
+}
+function fxBlock(e,mine){
+  const hitPos=e.pos.clone().setY(1.3*e.T.scale);
+  e.blockT=.45; sfx.clang(); burst(hitPos,sparkMat,10,5,3,10,.35); popText(hitPos.clone().setY(2.2),'Geblockt','info');
+  if(mine){ tmpV.subVectors(e.pos,player.pos).setY(0).normalize(); player.knock.addScaledVector(tmpV,-2.5); rumble(.2,.3,80); }
+}
+function fxHit(e,dmg,heavy,mine){
+  const T=e.T, hitPos=e.pos.clone().setY(1.3*T.scale);
+  e.flash=.12; sfx.hit();
+  if(mine){ hitStop=heavy?.09:.05; shake=Math.max(shake,heavy?.35:.18); rumble(heavy?.5:.25,.3,heavy?120:70); }
+  burst(hitPos,sparkMat,heavy?12:7,5,3,12,.35); burst(e.pos.clone().setY(.1),sandMat,5,3,1.5,8,.5);
+  popText(hitPos.clone().setY(2.1*T.scale),String(Math.round(dmg)),heavy?'big':'');
 }
 function killEnemy(e){
   e.dead=true; e.state='dead'; e.t=0; game.kills++;
@@ -830,22 +896,26 @@ function killEnemy(e){
   hype=Math.min(1,hype+(e.T.boss?1:.4)); sfx.cheer();
   if(e.bar){e.bar.remove();e.bar=null;}
   if(e.ring) e.ring.visible=false;
-  if(e.T.boss){ $('boss').hidden=true; banner(e.name+' ist besiegt','Die Menge tobt',2.6); hitStop=.25; shake=.6; }
+  if(net.role==='host') broadcast({t:'kill',id:e.netId,p:pts});
+  if(e.T.boss){ $('boss').hidden=true; say(e.name+' ist besiegt','Die Menge tobt',2.6); hitStop=.25; shake=.6; }
 }
+// Ergebnis: null (schon tot), 'dodge', 'block', 'broken' (Deckung gebrochen) oder 'hit'
+let lastDmg=0;
 function damagePlayer(dmg,src){
-  const p=player; if(p.state==='dead'||p.invuln>0) return;
-  const toSrc=angTo(p.pos,src);
+  const p=player; lastDmg=0; if(p.state==='dead') return null; if(p.invuln>0) return 'dodge';
+  const toSrc=angTo(p.pos,src); let res='hit';
   tmpV.subVectors(p.pos,src).setY(0).normalize();
   if(p.blocking && Math.abs(angDiff(p.facing,toSrc))<1.4){
     const cost=dmg*1.1*p.blockMul;
     if(p.stamina>=cost){ p.stamina-=cost; p.stDelay=.5; sfx.clang(); burst(p.pos.clone().add(new V3(Math.sin(p.facing)*.6,1.3,Math.cos(p.facing)*.6)),sparkMat,12,5,3,10,.35);
-      p.knock.addScaledVector(tmpV,4); p.hp-=dmg*.08; shake=Math.max(shake,.15); rumble(.3,.5,90); return; }
-    p.stamina=0; p.stDelay=1; dmg*=.6; popText(p.pos.clone().setY(2.3),'Deckung gebrochen','info');
+      p.knock.addScaledVector(tmpV,4); p.hp-=dmg*.08; lastDmg=dmg*.08; shake=Math.max(shake,.15); rumble(.3,.5,90); return 'block'; }
+    p.stamina=0; p.stDelay=1; dmg*=.6; res='broken'; popText(p.pos.clone().setY(2.3),'Deckung gebrochen','info');
   }
-  p.hp-=dmg; p.state='hurt'; p.t=0; p.flash=.15; p.knock.addScaledVector(tmpV,6);
+  p.hp-=dmg; lastDmg=dmg; p.state='hurt'; p.t=0; p.flash=.15; p.knock.addScaledVector(tmpV,6);
   sfx.hurt(); shake=Math.max(shake,.4); hurtFx=1; rumble(.8,.6,180); combo=0;
   popText(p.pos.clone().setY(2.2),'-'+Math.round(dmg),'hurt');
-  if(p.hp<=0){ p.hp=0; p.state='dead'; p.t=0; game.overT=0; hype=.6; sfx.cheer(); banner('Gefallen','',2); }
+  if(p.hp<=0){ p.hp=0; p.state='dead'; p.t=0; game.overT=0; hype=.6; sfx.cheer(); banner('Gefallen',game.mode==='coop'?'Deine Gefährten kämpfen weiter':'',2); }
+  return res;
 }
 
 // ---------- updates ----------
@@ -861,7 +931,7 @@ function updatePlayer(dt,inp){
   if(p.state==='idle'){
     if(mag>.05){ const sp=p.blocking?2.4:6.2; p.pos.x+=mx*sp*mag*dt; p.pos.z+=mz*sp*mag*dt; walk=mag;
       if(!p.blocking) p.facing=lerpAngle(p.facing,Math.atan2(mx,mz),Math.min(1,14*dt)); }
-    if(p.blocking){ an.block=true; const ne=nearestEnemy(7); if(ne) p.facing=lerpAngle(p.facing,angTo(p.pos,ne.pos),Math.min(1,10*dt)); else if(mag>.05) p.facing=lerpAngle(p.facing,Math.atan2(mx,mz),Math.min(1,8*dt)); }
+    if(p.blocking){ an.block=true; const ne=nearestEnemy(7)||nearestRemote(7); if(ne) p.facing=lerpAngle(p.facing,angTo(p.pos,ne.pos),Math.min(1,10*dt)); else if(mag>.05) p.facing=lerpAngle(p.facing,Math.atan2(mx,mz),Math.min(1,8*dt)); }
     if(inp.attack && p.stamina>=6) startAttack(false,mx,mz,mag);
     else if(inp.heavy && p.stamina>=12) startAttack(true,mx,mz,mag);
     else if(inp.dodge && p.stamina>=12) startDodge(mx,mz,mag);
@@ -893,7 +963,8 @@ function updateEnemy(e,dt){
     else{h.root.rotation.z=k*PI/2;h.root.position.y=k*.35*T.scale-(e.t>2.5?(e.t-2.5)*.5:0);}
     setEmissive(h.mats,0); return;
   }
-  const dx=player.pos.x-e.pos.x, dz=player.pos.z-e.pos.z, dist=Math.hypot(dx,dz), toP=Math.atan2(dx,dz), pDead=player.state==='dead';
+  const tg=enemyTarget(e), tp=tg?tg.pos:player.pos;
+  const dx=tp.x-e.pos.x, dz=tp.z-e.pos.z, dist=Math.hypot(dx,dz), toP=Math.atan2(dx,dz), pDead=!tg;
   let walk=0; const an=e.anim; an.swing=-1; an.block=e.blockT>0; an.roll=-1; an.hurt=0; an.slam=false; an.heavy=!!T.boss; an.crouch=0; an.pounce=false; an.bite=-1; an.t=e.t+e.phase;
   const move=(ang,sp)=>{e.pos.x+=Math.sin(ang)*sp*dt;e.pos.z+=Math.cos(ang)*sp*dt;};
   if(e.spawnT>0){ e.spawnT-=dt; const toC=Math.atan2(-e.pos.x,-e.pos.z); e.facing=lerpAngle(e.facing,toC,Math.min(1,6*dt)); move(e.facing,T.speed*.8); walk=1; }
@@ -917,7 +988,7 @@ function updateEnemy(e,dt){
     case 'strike':
       if(e.t<.12) move(e.facing,T.kind==='cat'?4:3);
       if(T.kind==='cat') an.bite=.5+.5*Math.min(1,e.t/.3); else an.swing=.35+.65*Math.min(1,e.t/.3);
-      if(!e.hitDone&&e.t>=.1){ e.hitDone=true; if(dist<T.range+.7 && Math.abs(angDiff(e.facing,toP))<.95) damagePlayer(e.dmg,e.pos); }
+      if(!e.hitDone&&e.t>=.1){ e.hitDone=true; if(tg && dist<T.range+.7 && Math.abs(angDiff(e.facing,toP))<.95) hurtTarget(tg,e.dmg,e.pos); }
       if(e.t>=.36){ e.attacks++;
         if(T.boss&&e.combo<2&&Math.random()<.6){e.combo++;e.state='windup';e.t=T.windup*.45;}
         else{e.combo=0;e.state='recover';e.t=0;e.cdT=T.cd*rand(.8,1.3);e.strafe=Math.random()<.5?-1:1;} }
@@ -930,7 +1001,7 @@ function updateEnemy(e,dt){
       break;
     case 'pounce':
       an.pounce=true; e.pos.addScaledVector(e.vel,dt); e.vel.multiplyScalar(Math.exp(-2*dt));
-      if(!e.hitDone&&dist<1.6*T.scale){ e.hitDone=true; damagePlayer(e.dmg*1.2,e.pos); }
+      if(tg&&!e.hitDone&&dist<1.6*T.scale){ e.hitDone=true; hurtTarget(tg,e.dmg*1.2,e.pos); }
       if(e.t>=.5){ e.state='recover'; e.t=0; e.cdT=T.cd+.5; }
       break;
     case 'slamWind':{
@@ -939,7 +1010,7 @@ function updateEnemy(e,dt){
       if(e.t>=1.1){
         e.ring.visible=false; sfx.slam(); shake=.8; hitStop=.08; rumble(1,.8,300);
         for(let i=0;i<24;i++){const a=i/24*TAU; burst(new V3(e.pos.x+Math.sin(a)*2.5,.1,e.pos.z+Math.cos(a)*2.5),sandMat,2,4,3,10,.7);}
-        if(dist<5.5) damagePlayer(e.dmg*1.3,e.pos);
+        for(const t of TG){ if(!t.dead&&Math.hypot(t.pos.x-e.pos.x,t.pos.z-e.pos.z)<5.5) hurtTarget(t,e.dmg*1.3,e.pos); }
         e.state='recover'; e.t=0; e.cdT=T.cd+.6; e.attacks++;
       }
       break;}
@@ -960,31 +1031,50 @@ function separate(){
       if(d<m&&d>1e-4){const k=(m-d)/2/d; a.pos.x-=dx*k;a.pos.z-=dz*k;b.pos.x+=dx*k;b.pos.z+=dz*k;}}
     if(player.state!=='dead'&&a.state!=='pounce'){const dx=a.pos.x-player.pos.x,dz=a.pos.z-player.pos.z,d=Math.hypot(dx,dz),m=a.radius+.45;
       if(d<m&&d>1e-4){const k=(m-d)/d; a.pos.x+=dx*k*.75;a.pos.z+=dz*k*.75;player.pos.x-=dx*k*.25;player.pos.z-=dz*k*.25;}}
+    if(a.state!=='pounce') for(const r of net.remotes.values()){ if(r.dead)continue; const dx=a.pos.x-r.pos.x,dz=a.pos.z-r.pos.z,d=Math.hypot(dx,dz),m=a.radius+.45;
+      if(d<m&&d>1e-4){const k=(m-d)/d; a.pos.x+=dx*k;a.pos.z+=dz*k;}}
   }
+}
+function stepGame(dt,inp){
+  if(game.mode==='duel') updateDuel(dt,inp);
+  else if(net.role==='client') updateClientCoop(dt,inp);
+  else updateGame(dt,inp);
 }
 function updateGame(dt,inp){
   updatePlayer(dt,inp);
+  if(net.active){ updateRemotes(dt); pushFromRemotes(); }
+  TG=buildTargets();
   for(const e of enemies) updateEnemy(e,dt);
   separate();
   for(let i=enemies.length-1;i>=0;i--){const e=enemies[i]; if(e.dead&&e.t>4.5){removeEnemy(e);enemies.splice(i,1);}}
   comboT-=dt; if(comboT<=0) combo=0;
   hype=Math.max(.15,hype-dt*.07);
-  if(player.state==='dead'){ game.overT+=dt; if(game.overT>2.2) gameOver(); return; }
+  if(game.mode==='coop'){
+    if(TG.every(t=>t.dead)){ game.overT+=dt; if(game.overT>2.2){ const m={t:'over',w:game.wave,f:game.fame,k:game.kills}; broadcast(m); coopOver(m); } return; }
+    game.overT=0;
+  } else if(player.state==='dead'){ game.overT+=dt; if(game.overT>2.2) gameOver(); return; }
   const alive=enemies.filter(e=>!e.dead).length;
   if(game.state==='won'){ game.interT-=dt; if(game.interT<=0) victory(); return; }
   if(game.state==='play'){
     game.spawnT-=dt;
-    if(game.queue.length&&game.spawnT<=0&&alive<(game.queue[0]==='boss'?6:5)){ spawnEnemy(game.queue.shift()); game.spawnT=1.1; }
-    if(!game.queue.length&&alive===0){
+    const cap=(game.queue[0]==='boss'?6:5)+(game.mode==='coop'?net.players.length-1:0);
+    if(game.queue.length&&game.spawnT<=0&&alive<cap){ spawnEnemy(game.queue.shift()); game.spawnT=1.1; }
+    else if(!game.queue.length&&alive===0){
       if(game.mode==='career'&&game.wave>=game.fight.rounds.length){ game.state='won'; game.interT=2.6; hype=1; banner('Sieg!',game.fight.name,2.6); sfx.cheer(); return; }
       const career_=game.mode==='career';
-      game.state='inter'; game.interT=career_?3.4:4.2; const heal=Math.min(career_?20:30,player.maxHp-player.hp); player.hp+=heal;
-      banner(career_?'Runde '+roman(game.wave)+' gewonnen':'Welle '+roman(game.wave)+' überstanden',heal>=1?'+'+Math.round(heal)+' Leben':'Die Menge jubelt',2.8); hype=1; sfx.cheer();
+      game.state='inter'; game.interT=career_?3.4:4.2; hype=1;
+      if(game.mode==='coop'){
+        broadcast({t:'heal',a:30}); applyInterHeal(30);
+        say('Welle '+roman(game.wave)+' überstanden','Gefallene stehen wieder auf · +30 Leben',2.8,'cheer');
+      } else {
+        const heal=Math.min(career_?20:30,player.maxHp-player.hp); player.hp+=heal;
+        banner(career_?'Runde '+roman(game.wave)+' gewonnen':'Welle '+roman(game.wave)+' überstanden',heal>=1?'+'+Math.round(heal)+' Leben':'Die Menge jubelt',2.8); sfx.cheer();
+      }
     }
   } else if(game.state==='inter'){ game.interT-=dt; if(game.interT<=0) nextWave(); }
 }
 function updateCamera(dt,inp){
-  if(game.state==='title'||game.state==='ludus'||game.state==='menu'){
+  if(game.state==='title'||game.state==='ludus'||game.state==='menu'||game.state==='lobby'){
     cam.yaw+=dt*.1; const d=18; tmpV.set(Math.sin(cam.yaw)*d,6.5,Math.cos(cam.yaw)*d);
     camera.position.lerp(tmpV,1-Math.exp(-3*dt)); camera.lookAt(0,1.6,0); return;
   }
@@ -994,11 +1084,11 @@ function updateCamera(dt,inp){
     if(inp.center) cam.center=.35;
     if(cam.center>0){cam.center-=dt;cam.yaw=lerpAngle(cam.yaw,player.facing+PI,Math.min(1,10*dt));}
   }
-  const d=8.2,hgt=4.4; let x=player.pos.x+Math.sin(cam.yaw)*d, z=player.pos.z+Math.cos(cam.yaw)*d;
+  const fp=focusPos(), d=8.2,hgt=4.4; let x=fp.x+Math.sin(cam.yaw)*d, z=fp.z+Math.cos(cam.yaw)*d;
   const r=Math.hypot(x,z), lim=R+1.4; if(r>lim){x*=lim/r;z*=lim/r;}
   tmpV.set(x,hgt,z); camera.position.lerp(tmpV,1-Math.exp(-10*dt));
   const sk=shake*shake*.6;
-  camera.lookAt(player.pos.x+rand(-sk,sk),1.5+rand(-sk,sk),player.pos.z+rand(-sk,sk));
+  camera.lookAt(fp.x+rand(-sk,sk),1.5+rand(-sk,sk),fp.z+rand(-sk,sk));
 }
 function updateHUD(dt){
   const p=player;
@@ -1006,8 +1096,13 @@ function updateHUD(dt){
   $('hpFill').style.transform='scaleX('+(p.hp/p.maxHp)+')'; $('hpLag').style.transform='scaleX('+(p.lag/p.maxHp)+')';
   $('stFill').style.transform='scaleX('+(p.stamina/p.maxSt)+')';
   if(game.mode==='career'&&game.fight){ $('waveTxt').textContent=roman(Math.min(career.fight+1,FIGHTS.length)); $('roundTxt').textContent=game.fight.rounds.length>1?'Runde '+game.wave+' / '+game.fight.rounds.length:''; }
-  else { $('waveTxt').textContent=roman(Math.max(1,game.wave)); $('roundTxt').textContent=''; }
-  $('fameTxt').textContent=game.fame.toLocaleString('de-DE');
+  else if(game.mode==='duel'){ $('waveTxt').textContent=roman(Math.max(1,net.round)); $('roundTxt').textContent='Zwei Siege gewinnen'; }
+  else { $('waveTxt').textContent=roman(Math.max(1,game.wave)); $('roundTxt').textContent=game.mode==='coop'?'Koop · '+(net.remotes.size+1)+' Gladiatoren':''; }
+  if(game.mode==='duel'){ $('fameLbl').textContent='Stand'; $('fameTxt').textContent=(net.score[net.id]||0)+' : '+oppScore(net.score); }
+  else { $('fameLbl').textContent='Ruhm'; $('fameTxt').textContent=game.fame.toLocaleString('de-DE'); }
+  for(const r of net.remotes.values()){ const s=toScreen(tmpV.set(r.pos.x,2.8,r.pos.z));
+    r.el.style.display=s.vis?'grid':'none'; r.el.style.opacity=r.dead?'.45':'1';
+    r.el.style.transform='translate(-50%,-100%) translate('+s.x+'px,'+s.y+'px)'; r.bar.style.transform='scaleX('+Math.max(0,r.hp/r.mh)+')'; }
   $('comboTxt').textContent=combo>1?'Serie '+combo+' · ×'+(1+Math.min(2,combo*.1)).toFixed(1):'';
   hurtFx=Math.max(0,hurtFx-dt*2.2); $('hurtfx').style.opacity=Math.max(hurtFx,p.hp<p.maxHp*.3&&p.state!=='dead'?.35+Math.sin(performance.now()/180)*.15:0);
   const boss=enemies.find(e=>e.T.boss&&!e.dead); if(boss) $('bossFill').style.transform='scaleX('+Math.max(0,boss.hp/boss.maxHp)+')';
@@ -1028,7 +1123,15 @@ function updatePadText(){
 }
 $('startBtn').addEventListener('click',startGame);
 $('careerBtn').addEventListener('click',()=>{initAudio();showLudus();});
-$('againBtn').addEventListener('click',()=>game.mode==='career'?startCareerFight():startGame());
+$('againBtn').addEventListener('click',()=>net.active?backToLobby():(game.mode==='career'?startCareerFight():startGame()));
+$('onlineBtn').addEventListener('click',()=>{initAudio();showLobby('');});
+$('hostCoop').addEventListener('click',()=>hostRoom('coop'));
+$('hostDuel').addEventListener('click',()=>hostRoom('duel'));
+$('joinBtn').addEventListener('click',()=>joinRoom($('lbCode').value));
+$('lbCode').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); joinRoom($('lbCode').value); } else if(e.key==='Escape') e.target.blur(); });
+$('lbStart').addEventListener('click',hostStart);
+$('lbLeave').addEventListener('click',()=>{ if(net.active){ leaveRoom(); showLobby(''); } else showTitle(); });
+$('lbCopy').addEventListener('click',copyRoomLink);
 $('ludusBtn').addEventListener('click',showLudus);
 $('menuBtn').addEventListener('click',showTitle);
 $('resumeBtn').addEventListener('click',resume);
@@ -1045,7 +1148,370 @@ $('ldUps').addEventListener('click',e=>{
   career.denare-=cost; career.lv[u.id]++; saveCareer(); sfx.clang(); renderLudus();
   const nb=$('ldUps').querySelector('button[data-up="'+u.id+'"]'); (nb&&!nb.disabled?nb:$('ldFight')).focus();
 });
+// ---------- online (PeerJS, Raum-Code) ----------
+// Sterntopologie: Der Host simuliert Gegner und Wellen und verteilt Snapshots.
+// Jeder Spieler steuert seinen Gladiator selbst und meldet Treffer an den Host bzw. im Duell direkt an den Gegner.
+const PEER_PREFIX='gladius-arena-v1-', CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ';
+const PCOL=[{n:'Rot',t:0x9e2a22,s:0xa32a20,css:'#ef8a78'},{n:'Blau',t:0x2f5d8a,s:0x2a4f80,css:'#8db8e8'},{n:'Grün',t:0x4e6b3a,s:0x3f5e2e,css:'#a6d68a'},{n:'Gold',t:0xb88428,s:0xa8761e,css:'#ecc770'}];
+const COOP_SPAWN=[[0,4],[2.2,4],[-2.2,4],[0,6.2]];
+const EKEYS=['murmillo','retiarius','lion','tiger','boss'];
+const HOST_MSG=new Set(['welcome','busy','lobby','start','e','g','banner','fx','kill','hurt','heal','over','round','rend','dend']);
+const PEER_MSG=new Set(['hit','dead']);
+const r2=v=>Math.round(v*100)/100;
+const num=(v,d)=>typeof v==='number'&&isFinite(v)?v:(d||0);
+const pid=v=>Number.isInteger(v)&&v>=0&&v<PCOL.length;
+const inMatch=()=>game.state==='play'||game.state==='inter'||game.state==='won';
+
+function makeCode(){let s='';for(let i=0;i<5;i++)s+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return s;}
+function lobbyStatus(t){$('lbStatus').textContent=t;}
+function broadcast(m,except){ if(net.role!=='host')return; for(const[id,c]of net.conns){ if(id!==except&&c.open) try{c.send(m);}catch(e){} } }
+function sendHost(m){ const c=net.conn; if(c&&c.open) try{c.send(m);}catch(e){} }
+function sendTo(id,m){ if(net.role==='host'){ const c=net.conns.get(id); if(c&&c.open) try{c.send(m);}catch(e){} } else if(id===0) sendHost(m); }
+function say(a,b,d,s){ banner(a,b,d); if(s) sfx[s](); if(net.role==='host') broadcast({t:'banner',a,b,d,s}); }
+
+function hostRoom(mode,tries){
+  if(!window.Peer){ lobbyStatus('Die Netzwerk-Bibliothek konnte nicht geladen werden. Lade die Seite neu.'); return; }
+  leaveRoom(); tries=tries||0;
+  const code=makeCode(), peer=new Peer(PEER_PREFIX+code,{debug:0});
+  Object.assign(net,{active:true,joined:false,role:'host',mode,code,id:0,players:[0],peer});
+  renderLobby(); lobbyStatus('Raum wird erstellt …');
+  peer.on('open',()=>{ if(net.peer!==peer)return; net.joined=true; game.state='lobby'; renderLobby(); focusFirst();
+    lobbyStatus(mode==='duel'?'Schick den Code deinem Gegner und warte, bis er beitritt.':'Schick den Code deinen Freunden. Du kannst auch allein starten.'); });
+  peer.on('connection',c=>{ if(net.peer===peer) hostAccept(c); });
+  // Verbindung zum Vermittlungsserver verloren: neu verbinden, damit weitere Spieler beitreten können
+  peer.on('disconnected',()=>setTimeout(()=>{ if(net.peer===peer&&!peer.destroyed&&peer.disconnected) try{peer.reconnect();}catch(e){} },1500));
+  peer.on('error',err=>{ if(net.peer!==peer)return; if(err.type==='unavailable-id'&&tries<4){ hostRoom(mode,tries+1); return; } if(!net.joined) netError(err); });
+}
+function hostAccept(c){
+  c.on('open',()=>{
+    const max=net.mode==='duel'?2:4;
+    if(game.state!=='lobby'||net.players.length>=max){ c.send({t:'busy',full:net.players.length>=max}); setTimeout(()=>c.close(),400); return; }
+    let id=1; while(net.players.includes(id)) id++;
+    c.pid=id; net.conns.set(id,c); net.players.push(id); net.players.sort();
+    c.send({t:'welcome',id,mode:net.mode});
+    broadcastLobby(); lobbyStatus(PCOL[id].n+' ist beigetreten.');
+  });
+  c.on('data',m=>{ if(c.pid!==undefined&&net.conns.get(c.pid)===c) onMsg(m,c.pid); });
+  c.on('close',()=>dropPeer(c));
+  c.on('error',()=>dropPeer(c));
+}
+function broadcastLobby(){ broadcast({t:'lobby',p:net.players}); renderLobby(); }
+function dropPeer(c){
+  const id=c.pid; if(id===undefined||net.conns.get(id)!==c) return;
+  net.conns.delete(id); net.players=net.players.filter(x=>x!==id); removeRemote(id); broadcastLobby();
+  if(inMatch()&&game.mode==='duel') duelEnd({w:net.id,sc:net.score,ff:1});
+  else if(inMatch()) say(PCOL[id].n+' hat die Arena verlassen','',2.2);
+  else if(game.state==='lobby') lobbyStatus(PCOL[id].n+' hat den Raum verlassen.');
+}
+function joinRoom(code){
+  code=String(code||'').toUpperCase().replace(/[^A-Z]/g,'');
+  if(code.length!==5){ lobbyStatus('Der Raum-Code besteht aus fünf Buchstaben.'); return; }
+  if(!window.Peer){ lobbyStatus('Die Netzwerk-Bibliothek konnte nicht geladen werden. Lade die Seite neu.'); return; }
+  leaveRoom();
+  const peer=new Peer({debug:0});
+  Object.assign(net,{active:true,joined:false,role:'client',mode:null,code,peer});
+  lobbyStatus('Verbinde mit Raum '+code+' …');
+  net.joinTimer=setTimeout(()=>{ if(net.peer===peer&&!net.joined) lost('Keine Antwort von Raum '+code+'. Prüfe den Code und versuch es erneut.'); },15000);
+  peer.on('open',()=>{ if(net.peer!==peer)return;
+    const c=peer.connect(PEER_PREFIX+code,{reliable:true,serialization:'json'}); net.conn=c;
+    c.on('data',m=>{ if(net.conn===c) onMsg(m,0); });
+    c.on('close',()=>{ if(net.conn===c) lost(net.joined?'Die Verbindung zum Host wurde getrennt.':'Der Raum hat die Verbindung abgelehnt.'); });
+    c.on('error',()=>{ if(net.conn===c) lost('Verbindungsfehler.'); });
+  });
+  peer.on('error',err=>{ if(net.peer!==peer)return; if(!net.joined) netError(err); });
+}
+function netError(err){
+  const t=err&&err.type;
+  lost(t==='peer-unavailable'?'Raum nicht gefunden. Prüfe den Code.':
+    t==='browser-incompatible'?'Dein Browser unterstützt kein WebRTC.':
+    (t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed')?'Keine Verbindung zum Vermittlungsserver. Prüfe deine Internetverbindung.':
+    'Netzwerkfehler'+(t?' ('+t+')':'')+'.');
+}
+function lost(msg){ leaveRoom(); showLobby(msg); }
+function leaveRoom(){
+  const p=net.peer; clearTimeout(net.joinTimer);
+  Object.assign(net,{active:false,joined:false,role:null,mode:null,peer:null,conn:null,conns:new Map(),id:0,code:'',players:[0],menu:false,score:{},round:0});
+  clearRemotes(); setPlayerColor(0);
+  if(p) try{p.destroy();}catch(e){}
+}
+function focusFirst(){ const b=overlayButtons()[0]; if(b) try{b.focus({preventScroll:true});}catch(e){} }
+function showLobby(msg){
+  game.state='lobby'; clearArena(); clearRemotes(); setHud(false); exitLock(); net.menu=false;
+  renderLobby(); showOverlay('lobbyScreen',.3); if(msg!==undefined) lobbyStatus(msg);
+}
+function backToLobby(){ showLobby(net.role==='host'?'Starte den nächsten Kampf, wenn alle bereit sind.':'Warte, bis der Host den nächsten Kampf startet.'); }
+function renderLobby(){
+  const inRoom=net.active&&net.joined;
+  $('lbSetup').hidden=inRoom; $('lbRoom').hidden=!inRoom;
+  $('lbTitle').textContent=!inRoom?'Mehrspieler':(net.mode==='duel'?'Duell-Raum':'Koop-Raum');
+  $('lbCodeShow').textContent=net.code;
+  const ul=$('lbPlayers'); ul.textContent='';
+  for(const id of net.players){ const li=document.createElement('li'), c=PCOL[id]; li.style.color=c.css;
+    li.textContent='Gladiator '+c.n+(id===0?' · Host':'')+(id===net.id?' (du)':''); ul.appendChild(li); }
+  $('lbStart').hidden=!(inRoom&&net.role==='host');
+  $('lbLeave').textContent=inRoom?'Raum verlassen':'Zurück';
+}
+function copyRoomLink(){
+  const web=/^https?:$/.test(location.protocol), txt=web?location.origin+location.pathname+'?raum='+net.code:net.code;
+  const fail=()=>lobbyStatus('Kopieren nicht möglich. Der Code lautet '+net.code+'.');
+  try{ navigator.clipboard.writeText(txt).then(()=>lobbyStatus(web?'Link kopiert. Schick ihn deinen Mitspielern.':'Code kopiert.'),fail); }catch(e){ fail(); }
+}
+function hostStart(){
+  if(net.role!=='host'||!net.joined) return;
+  if(net.mode==='duel'&&net.players.length<2){ lobbyStatus('Für ein Duell braucht es zwei Spieler.'); return; }
+  broadcast({t:'start'}); startOnline();
+}
+function startOnline(){
+  initAudio(); game.mode=net.mode; resetArena(); clearRemotes(); setPlayerColor(net.id);
+  for(const id of net.players) if(id!==net.id) createRemote(id);
+  Object.assign(net,{menu:false,reported:false,nextT:0,sendT:0,snapT:0});
+  if(net.mode==='coop'){
+    const s=COOP_SPAWN[net.id]; player.pos.set(s[0],0,s[1]);
+    if(net.role==='host') nextWave(); else { game.state='play'; game.wave=1; }
+  } else {
+    net.score={}; for(const id of net.players) net.score[id]=0; net.round=0;
+    if(net.role==='host') duelRound(1); else { game.state='inter'; game.interT=99; } // wartet auf die erste Runde vom Host
+  }
+}
+
+// --- Mitspieler ---
+function setPlayerColor(id){ const c=PCOL[id]||PCOL[0]; P.mats[1].color.setHex(c.t); P.mats[7].color.setHex(c.s); }
+function createRemote(id){
+  const c=PCOL[id], m=makeHumanoid({tunic:c.t,metal:0xc8963e,crest:0xe8dcc0,shield:'scutum',shieldColor:c.s,weapon:'sword',manica:true,greaves:true});
+  scene.add(m.root);
+  const el=document.createElement('div'), nm=document.createElement('span'), b=document.createElement('div'), bi=document.createElement('i');
+  el.className='plabel'; el.style.color=c.css; nm.textContent=c.n; b.className='ebar'; b.appendChild(bi); el.append(nm,b); floatsEl.appendChild(el);
+  const s=game.mode==='duel'?[0,id===0?6:-6]:COOP_SPAWN[id];
+  net.remotes.set(id,{id,m,el,bar:bi,pos:new V3(s[0],0,s[1]),tpos:new V3(s[0],0,s[1]),facing:PI,tf:PI,dead:false,deadT:0,hp:100,mh:100,phase:0,
+    anim:{swing:-1,roll:-1,hurt:0,walk:0,block:false,heavy:false,slam:false}});
+}
+function removeRemote(id){ const r=net.remotes.get(id); if(!r)return; scene.remove(r.m.root); r.el.remove(); net.remotes.delete(id); }
+function clearRemotes(){ for(const id of [...net.remotes.keys()]) removeRemote(id); }
+function onPlayerState(m,id){
+  const r=net.remotes.get(id); if(!r)return;
+  r.tpos.set(clamp(num(m.x),-R,R),0,clamp(num(m.z),-R,R)); r.tf=num(m.f);
+  r.mh=Math.max(1,num(m.mh,100)); r.hp=clamp(num(m.hp),0,r.mh);
+  if(m.d&&!r.dead){r.dead=true;r.deadT=0;} else if(!m.d) r.dead=false;
+  const a=Array.isArray(m.a)?m.a:[], an=r.anim;
+  an.swing=num(a[0],-1); an.roll=num(a[1],-1); an.hurt=num(a[2]); an.walk=clamp(num(a[3]),0,1); an.block=!!a[4]; an.heavy=!!a[5];
+}
+function updateRemotes(dt){
+  const k=1-Math.exp(-15*dt);
+  for(const r of net.remotes.values()){
+    const h=r.m;
+    if(r.pos.distanceTo(r.tpos)>6) r.pos.copy(r.tpos); else r.pos.lerp(r.tpos,k);
+    r.facing=lerpAngle(r.facing,r.tf,k);
+    if(r.dead){ r.deadT+=dt; const q=Math.min(1,r.deadT*2.2); h.root.position.set(r.pos.x,q*.25,r.pos.z); h.root.rotation.set(-q*PI/2*.98,r.facing,0); setEmissive(h.mats,0); continue; }
+    r.phase+=r.anim.walk*dt*11; r.anim.phase=r.phase;
+    h.root.position.copy(r.pos); h.root.rotation.set(0,r.facing,0); animateHumanoid(h,r.anim);
+    setEmissive(h.mats,r.anim.hurt>.4?0x7a1a10:0);
+  }
+}
+function pushFromRemotes(){
+  if(player.state==='dead') return;
+  for(const r of net.remotes.values()){ if(r.dead)continue;
+    const dx=player.pos.x-r.pos.x,dz=player.pos.z-r.pos.z,d=Math.hypot(dx,dz);
+    if(d<.9&&d>1e-4){const k=(.9-d)/d*.5; player.pos.x+=dx*k; player.pos.z+=dz*k;} }
+}
+function nearestRemote(maxD,fromAng,maxArc){
+  if(game.mode!=='duel') return null; let best=null,bd=1e9;
+  for(const r of net.remotes.values()){ if(r.dead)continue; const d=r.pos.distanceTo(player.pos); if(d>maxD)continue;
+    if(fromAng!==undefined&&Math.abs(angDiff(fromAng,angTo(player.pos,r.pos)))>maxArc)continue; if(d<bd){bd=d;best=r;} }
+  return best;
+}
+function focusPos(){ if(game.mode==='coop'&&player.state==='dead') for(const r of net.remotes.values()) if(!r.dead) return r.pos; return player.pos; }
+
+// --- Koop: Ziele der Gegner (Host) ---
+function buildTargets(){ const l=[{id:net.id,pos:player.pos,dead:player.state==='dead',local:true}]; for(const r of net.remotes.values()) l.push({id:r.id,pos:r.pos,dead:r.dead,local:false}); return l; }
+function enemyTarget(e){
+  let best=null,bd=1e9;
+  for(const t of TG){ if(t.dead)continue; const d=Math.hypot(t.pos.x-e.pos.x,t.pos.z-e.pos.z)*(t.id===e.tgId?.75:1); if(d<bd){bd=d;best=t;} }
+  e.tgId=best?best.id:-1; return best;
+}
+function hurtTarget(t,dmg,src){ if(t.local) damagePlayer(dmg,src); else sendTo(t.id,{t:'hurt',d:r2(dmg),x:r2(src.x),z:r2(src.z)}); }
+function applyInterHeal(a){
+  const p=player;
+  if(p.state==='dead'){ Object.assign(p,{state:'idle',t:0,hp:p.maxHp*.5,lag:p.maxHp*.5,invuln:1.5,stamina:p.maxSt}); popText(p.pos.clone().setY(2.3),'Wieder auf den Beinen','info'); }
+  else p.hp=Math.min(p.maxHp,p.hp+a);
+}
+function snapE(e){
+  const a=e.anim, tele=e.state==='windup'||e.state==='crouch'||e.state==='slamWind';
+  return [e.netId,EKEYS.indexOf(e.key),r2(e.pos.x),r2(e.pos.z),r2(e.facing),Math.round(e.hp),Math.round(e.maxHp),e.dead?1:0,r2(e.refs.root.position.y),
+    r2(num(a.swing,-1)),r2(num(a.bite,-1)),r2(num(a.crouch)),r2(num(a.hurt)),r2(num(a.walk)),
+    (a.pounce?1:0)|(a.slam?2:0)|(a.block?4:0)|(tele?8:0)|(e.flash>0?16:0),e.ring&&e.ring.visible?r2(e.ring.scale.x):0];
+}
+function coopOver(m){
+  game.state='over'; exitLock(); setHud(false); clearRemotes(); net.menu=false;
+  const w=Math.max(1,num(m.w)|0), k=num(m.k)|0;
+  $('overEyebrow').textContent='Koop · Pollice verso'; $('overTitle').textContent='Gefallen in Welle '+roman(w);
+  $('overSub').textContent='Seite an Seite habt ihr '+k+' Gegner besiegt. Die Menge wird eure Namen nicht vergessen.';
+  setOverLabels('Ruhm','Besiegt','Welle'); $('sFame').textContent=(num(m.f)|0).toLocaleString('de-DE'); $('sKills').textContent=k; $('sBest').textContent=roman(w);
+  $('againBtn').textContent='Zur Lobby'; $('ludusBtn').hidden=true; $('menuBtn').textContent='Raum verlassen';
+  showOverlay('overScreen',1.2);
+}
+
+// --- Koop: Gegner auf den Mitspieler-Rechnern ---
+const netEnemy=id=>enemies.find(e=>e.netId===id);
+function makeNetEnemy(id,key,x,z,f){
+  const T=TYPES[key], refs=T.build(); refs.root.scale.setScalar(T.scale); scene.add(refs.root);
+  const e={netId:id,key,T,refs,pos:new V3(x,0,z),tpos:new V3(x,0,z),facing:f,tf:f,hp:1,maxHp:1,dead:false,t:0,y:0,phase:0,radius:T.radius,flash:0,tele:false,ringK:0,lastCrouch:0,bar:null,ring:null,
+    anim:{swing:-1,bite:-1,crouch:0,hurt:0,walk:0,roll:-1,heavy:!!T.boss,block:false,slam:false,pounce:false}};
+  enemyUi(e); if(T.kind==='cat') sfx.roar(); enemies.push(e); return e;
+}
+function markDead(e){ if(e.dead)return; e.dead=true; e.t=0; if(e.bar){e.bar.remove();e.bar=null;} if(e.ring) e.ring.visible=false; }
+function applySnap(l){
+  if(!Array.isArray(l)) return; const seen=new Set();
+  for(const s of l){
+    if(!Array.isArray(s)) continue; const id=s[0], key=EKEYS[s[1]]; if(!Number.isInteger(id)||!key) continue; seen.add(id);
+    const x=clamp(num(s[2]),-R-2,R+2), z=clamp(num(s[3]),-R-2,R+2);
+    const e=netEnemy(id)||makeNetEnemy(id,key,x,z,num(s[4]));
+    e.tpos.set(x,0,z); e.tf=num(s[4]); e.hp=num(s[5]); e.maxHp=Math.max(1,num(s[6],1)); e.y=num(s[8]);
+    if(s[7]&&!e.dead) markDead(e);
+    const a=e.anim, fl=num(s[14])|0;
+    a.swing=num(s[9],-1); a.bite=num(s[10],-1); a.crouch=num(s[11]); a.hurt=num(s[12]); a.walk=num(s[13]);
+    a.pounce=!!(fl&1); a.slam=!!(fl&2); a.block=!!(fl&4); e.tele=!!(fl&8); if(fl&16) e.flash=Math.max(e.flash,.06);
+    if(e.T.kind==='cat'&&a.crouch>0&&!(e.lastCrouch>0)) sfx.roar(); e.lastCrouch=a.crouch;
+    const rk=num(s[15]);
+    if(e.ringK>0&&rk===0&&!e.dead){ // Bodenstampfer des Champions
+      sfx.slam(); shake=Math.max(shake,e.pos.distanceTo(player.pos)<10?.8:.3);
+      for(let i=0;i<24;i++){const q=i/24*TAU; burst(new V3(e.pos.x+Math.sin(q)*2.5,.1,e.pos.z+Math.cos(q)*2.5),sandMat,2,4,3,10,.7);}
+    }
+    e.ringK=rk;
+  }
+  for(let i=enemies.length-1;i>=0;i--) if(!seen.has(enemies[i].netId)){ removeEnemy(enemies[i]); enemies.splice(i,1); }
+}
+function updateNetEnemy(e,dt){
+  const T=e.T, h=e.refs; e.t+=dt; e.flash-=dt;
+  if(e.dead){
+    const k=Math.min(1,e.t*2.4);
+    if(h.kind==='man'){h.root.rotation.set(-k*PI/2*.98,e.facing,0);h.root.position.set(e.pos.x,k*.25*T.scale-(e.t>2.5?(e.t-2.5)*.4:0),e.pos.z);}
+    else{h.root.rotation.set(0,e.facing,k*PI/2);h.root.position.set(e.pos.x,k*.35*T.scale-(e.t>2.5?(e.t-2.5)*.5:0),e.pos.z);}
+    setEmissive(h.mats,0); return;
+  }
+  const k=1-Math.exp(-14*dt);
+  if(e.pos.distanceTo(e.tpos)>6) e.pos.copy(e.tpos); else e.pos.lerp(e.tpos,k);
+  e.facing=lerpAngle(e.facing,e.tf,k);
+  const an=e.anim; e.phase+=an.walk*dt*(T.kind==='cat'?13:10)*(T.boss?.7:1); an.phase=e.phase; an.t=e.t;
+  h.root.position.set(e.pos.x,e.y,e.pos.z); h.root.rotation.set(0,e.facing,0);
+  if(h.kind==='man') animateHumanoid(h,an); else animateCat(h,an);
+  setEmissive(h.mats,e.flash>0?0x8a2a1a:(e.tele?(Math.sin(e.t*30)>0?0x5a2600:0x3a1800):0));
+  if(e.ring){ e.ring.visible=e.ringK>0; if(e.ringK>0){ e.ring.position.set(e.pos.x,.06,e.pos.z); e.ring.scale.setScalar(e.ringK); e.ring.material.opacity=.25+.45*clamp((e.ringK-.5)/5,0,1); } }
+}
+function updateClientCoop(dt,inp){
+  updatePlayer(dt,inp); updateRemotes(dt); pushFromRemotes();
+  for(const e of enemies) updateNetEnemy(e,dt);
+  if(player.state!=='dead') for(const e of enemies){ if(e.dead||e.anim.pounce)continue;
+    const dx=player.pos.x-e.pos.x,dz=player.pos.z-e.pos.z,d=Math.hypot(dx,dz),m=e.radius+.45;
+    if(d<m&&d>1e-4){const q=(m-d)/d; player.pos.x+=dx*q; player.pos.z+=dz*q;} }
+  comboT-=dt; if(comboT<=0) combo=0;
+}
+
+// --- Duell ---
+function otherId(){ for(const id of net.players) if(id!==net.id) return id; return -1; }
+function oppScore(sc){ let v=0; for(const k in sc) if(+k!==net.id) v=Math.max(v,sc[k]|0); return v; }
+function sanitizeScore(sc){ const o={}; if(sc&&typeof sc==='object') for(const k in sc) if(pid(+k)) o[k]=clamp(num(sc[k])|0,0,9); return o; }
+function scoreLine(){ return 'Du '+(net.score[net.id]||0)+' : '+oppScore(net.score)+' Gegner'; }
+function duelRound(n){ const m={t:'round',n,sc:net.score}; broadcast(m); applyRound(m); }
+function applyRound(m){
+  net.round=Math.max(1,num(m.n)|0); net.score=sanitizeScore(m.sc); net.reported=false;
+  const p=player, first=net.id===0;
+  Object.assign(p,{hp:p.maxHp,lag:p.maxHp,stamina:p.maxSt,stDelay:0,state:'idle',t:0,invuln:0,blocking:false,buffer:null,flash:0});
+  p.pos.set(0,0,first?6:-6); p.facing=first?PI:0; p.knock.set(0,0,0); cam.yaw=p.facing+PI;
+  for(const r of net.remotes.values()){ r.dead=false; r.hp=r.mh; }
+  game.state='inter'; game.interT=2.4; hitStop=0; hype=.5;
+  banner('Runde '+roman(net.round),scoreLine(),2.2); sfx.horn();
+}
+function hostRoundEnd(w){
+  if(game.state!=='play') return;
+  net.score[w]=(net.score[w]||0)+1; const m={t:'rend',w,sc:net.score}; broadcast(m); applyRoundEnd(m); net.nextT=3;
+}
+function applyRoundEnd(m){ net.score=sanitizeScore(m.sc); game.state='won'; banner(m.w===net.id?'Runde gewonnen':'Runde verloren',scoreLine(),2.6); hype=1; sfx.cheer(); }
+function hostAfterRound(){
+  const w=net.players.find(id=>(net.score[id]||0)>=2);
+  if(w!==undefined){ const m={t:'dend',w,sc:net.score}; broadcast(m); duelEnd(m); } else duelRound(net.round+1);
+}
+function duelEnd(m){
+  game.state='over'; exitLock(); setHud(false); clearRemotes(); net.menu=false;
+  const sc=sanitizeScore(m.sc), won=m.w===net.id;
+  $('overEyebrow').textContent=m.ff?'Der Gegner hat die Arena verlassen':'Duell · Endstand';
+  $('overTitle').textContent=won?'Sieg im Duell':'Niederlage im Duell';
+  $('overSub').textContent=won?'Die Menge feiert dich. Der Kaiser hebt den Daumen.':'Dein Gegner war heute stärker. Zurück in die Lobby und fordere Revanche.';
+  setOverLabels('Deine Siege','Gegner','Runden'); $('sFame').textContent=sc[net.id]||0; $('sKills').textContent=oppScore(sc); $('sBest').textContent=net.round;
+  $('againBtn').textContent='Zur Lobby'; $('ludusBtn').hidden=true; $('menuBtn').textContent='Raum verlassen';
+  if(won){ hype=1; sfx.cheer(); }
+  showOverlay('overScreen',1.2);
+}
+function updateDuel(dt,inp){
+  if(game.state==='inter'){ inp.attack=inp.heavy=false; game.interT-=dt; if(game.interT<=0){ game.state='play'; banner('Kämpft!','',1.2); sfx.horn(); } }
+  updatePlayer(dt,inp); updateRemotes(dt); pushFromRemotes();
+  comboT-=dt; if(comboT<=0) combo=0; hype=Math.max(.15,hype-dt*.07);
+  if(game.state==='play'&&player.state==='dead'&&!net.reported){ net.reported=true; if(net.role==='host') hostRoundEnd(otherId()); else sendHost({t:'dead'}); }
+  if(net.role==='host'&&net.nextT>0){ net.nextT-=dt; if(net.nextT<=0) hostAfterRound(); }
+}
+function onPvpResult(m,from){
+  const r=net.remotes.get(from); if(!r) return;
+  const pos=r.pos.clone().setY(1.3), dmg=Math.round(clamp(num(m.d),0,99));
+  if(m.r==='block'){ sfx.clang(); burst(pos,sparkMat,10,5,3,10,.35); popText(pos.clone().setY(2.2),'Geblockt','info');
+    tmpV.subVectors(r.pos,player.pos).setY(0).normalize(); player.knock.addScaledVector(tmpV,-2.5); rumble(.2,.3,80); }
+  else if(m.r==='dodge') popText(pos.clone().setY(2.2),'Ausgewichen','info');
+  else if(m.r==='hit'||m.r==='broken'){
+    const heavy=dmg>=26; sfx.hit(); hitStop=heavy?.09:.05; shake=Math.max(shake,heavy?.35:.18); rumble(heavy?.5:.25,.3,heavy?120:70);
+    burst(pos,sparkMat,heavy?12:7,5,3,12,.35); popText(pos.clone().setY(2.1),String(dmg),heavy?'big':''); combo++; comboT=2.5; hype=Math.min(1,hype+.08);
+  }
+}
+
+// --- Nachrichten ---
+function netTick(dt){
+  net.sendT-=dt;
+  if(net.sendT<=0){ net.sendT=.05; const p=player, an=p.anim;
+    const m={t:'p',id:net.id,x:r2(p.pos.x),z:r2(p.pos.z),f:r2(p.facing),d:p.state==='dead'?1:0,hp:Math.round(p.hp),mh:p.maxHp,
+      a:[r2(num(an.swing,-1)),r2(num(an.roll,-1)),r2(num(an.hurt)),r2(num(an.walk)),an.block?1:0,an.heavy?1:0]};
+    if(net.role==='host') broadcast(m); else sendHost(m); }
+  if(net.role==='host'&&net.mode==='coop'){ net.snapT-=dt;
+    if(net.snapT<=0){ net.snapT=.066; broadcast({t:'e',l:enemies.map(snapE)}); broadcast({t:'g',w:game.wave,f:game.fame,k:game.kills,h:r2(hype),b:game.bossName}); } }
+}
+function onMsg(m,from){
+  if(!m||typeof m!=='object'||typeof m.t!=='string') return;
+  if(net.role==='client'&&PEER_MSG.has(m.t)) return;
+  if(net.role==='host'&&HOST_MSG.has(m.t)) return;
+  const live=inMatch();
+  switch(m.t){
+    case 'welcome': if(!pid(m.id)||m.id===0) return; clearTimeout(net.joinTimer); net.joined=true; net.id=m.id; net.mode=m.mode==='duel'?'duel':'coop';
+      showLobby('Verbunden. Warte, bis der Host den Kampf startet.'); break;
+    case 'busy': lost(m.full?'Der Raum ist voll.':'In diesem Raum läuft gerade ein Kampf. Versuch es gleich noch einmal.'); break;
+    case 'lobby': if(!Array.isArray(m.p)) return; net.players=m.p.filter(pid);
+      for(const id of [...net.remotes.keys()]) if(!net.players.includes(id)) removeRemote(id);
+      if(game.state==='lobby') renderLobby(); break;
+    case 'start': if(net.joined&&(game.state==='lobby'||game.state==='over')) startOnline(); break;
+    case 'p': { const id=net.role==='host'?from:m.id; if(!pid(id)||id===net.id) return; onPlayerState(m,id);
+      if(net.role==='host'){ m.id=from; broadcast(m,from); } break; }
+    case 'e': if(live) applySnap(m.l); break;
+    case 'g': game.wave=Math.max(0,num(m.w)|0); game.fame=Math.max(0,num(m.f)|0); game.kills=Math.max(0,num(m.k)|0); hype=clamp(num(m.h,hype),0,1);
+      if(typeof m.b==='string') game.bossName=m.b.slice(0,40); break;
+    case 'banner': if(!live) return; banner(String(m.a||'').slice(0,60),String(m.b||'').slice(0,90),clamp(num(m.d,2),.5,5));
+      if(m.s==='horn'||m.s==='cheer') sfx[m.s](); break;
+    case 'fx': { const e=netEnemy(m.id); if(!e||e.dead) return; const mine=m.by===net.id;
+      if(m.b) fxBlock(e,mine); else { fxHit(e,clamp(num(m.d),0,999),!!m.h,mine); if(mine){combo++;comboT=2.5;} } break; }
+    case 'kill': { const e=netEnemy(m.id); if(e){ markDead(e); popText(e.pos.clone().setY(2.6*e.T.scale),'+'+(num(m.p)|0)+' Ruhm','fame'); if(e.T.boss){ $('boss').hidden=true; hitStop=.25; shake=.6; } }
+      hype=Math.min(1,hype+.4); sfx.cheer(); break; }
+    case 'hurt': if(live&&game.mode==='coop') damagePlayer(clamp(num(m.d),0,80),new V3(num(m.x),0,num(m.z))); break;
+    case 'heal': if(live) applyInterHeal(clamp(num(m.a),0,100)); break;
+    case 'over': if(live&&game.mode==='coop') coopOver(m); break;
+    case 'round': if(live&&game.mode==='duel') applyRound(m); break;
+    case 'rend': if(live&&game.mode==='duel') applyRoundEnd(m); break;
+    case 'dend': if(live&&game.mode==='duel') duelEnd(m); break;
+    case 'hit': { if(!live) return; const e=enemies.find(x=>x.netId===m.id&&!x.dead), r=net.remotes.get(from);
+      if(e&&r&&!r.dead&&e.pos.distanceTo(r.pos)<6) hitEnemy(e,clamp(num(m.d),0,80),!!m.h,r.pos,from); break; }
+    case 'dead': if(game.mode==='duel') hostRoundEnd(net.id); break;
+    case 'pvp': { if(game.mode!=='duel'||game.state!=='play') return;
+      const res=damagePlayer(clamp(num(m.d),0,60),new V3(num(m.x),0,num(m.z))); sendTo(from,{t:'pvpr',r:res,d:Math.round(lastDmg)}); break; }
+    case 'pvpr': onPvpResult(m,from); break;
+  }
+}
+
 showTitle();
+try{ const q=new URLSearchParams(location.search).get('raum');
+  if(q){ showLobby('Raum-Code aus dem Link übernommen. Drücke „Beitreten“.'); $('lbCode').value=q.toUpperCase().replace(/[^A-Z]/g,'').slice(0,5); } }catch(e){}
 
 // ---------- loop ----------
 let last=performance.now(), padTick=0;
@@ -1060,11 +1526,15 @@ function frame(now){
     if(game.state==='pause'&&inp.pause){ resume(); inp.dodge=false; }
     else menuInput(inp);
     inp.dodge=false; inp.attack=false;
+  } else if(net.menu){
+    menuLock-=dt; if(inp.pause) resume(); else menuInput(inp);
+    Object.assign(inp,{mx:0,my:0,cx:0,mouse:0,attack:false,heavy:false,dodge:false,block:false,center:false});
   } else if(inp.pause){ pause(); }
   if(game.state==='play'||game.state==='inter'||game.state==='won'){
     let gdt=dt; if(hitStop>0){hitStop-=dt;gdt=dt*.1;}
-    updateGame(gdt,inp);
-  } else if(game.state==='title'||game.state==='ludus'){
+    stepGame(gdt,inp);
+    if(net.active) netTick(dt);
+  } else if(game.state==='title'||game.state==='ludus'||game.state==='lobby'){
     const an=player.anim; Object.assign(an,{walk:0,phase:0,swing:-1,block:false,roll:-1,hurt:0,slam:false});
     P.root.position.set(0,0,0); P.root.rotation.set(0,Math.sin(now/2000)*.3,0); animateHumanoid(P,an);
   }
